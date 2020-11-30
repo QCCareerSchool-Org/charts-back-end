@@ -18,7 +18,7 @@ const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 
 const app = express();
 app.use(cors({
-  origin: 'secure.qccareerschool.com',
+  origin: 'https://secure.qccareerschool.com',
 }));
 app.use(helmet());
 app.use(compression());
