@@ -17,7 +17,10 @@ dotenv.config();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'https://secure.qccareerschool.com',
+  credentials: true,
+}));
 app.use(helmet());
 app.use(compression());
 app.use(cookieParser());
