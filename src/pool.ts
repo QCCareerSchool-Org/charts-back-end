@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 import mysql from 'promise-mysql';
+import { logger } from './logger';
 
 dotenv.config();
 
@@ -33,5 +34,7 @@ if (typeof process.env.DB_SSL !== 'undefined' && process.env.DB_SSL === 'true') 
     options.ssl.ca = fs.readFileSync(process.env.DB_SERVER_CA);
   }
 }
+
+logger.info(options);
 
 export const pool: PromiseLike<mysql.Pool> = mysql.createPool(options);

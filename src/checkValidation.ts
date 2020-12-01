@@ -26,7 +26,7 @@ const verify = (token: string): Promise<any> => {
 
 export const checkValidation = asyncWrapper(async (req, res, next) => {
   // check for access token
-  const accessToken = req.cookies.get('access');
+  const accessToken = req.cookies.access;
   if (typeof accessToken === 'undefined') {
     throw new HttpStatus.Unauthorized('No access token detected');
   }
