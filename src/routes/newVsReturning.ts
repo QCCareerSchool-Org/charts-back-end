@@ -142,12 +142,12 @@ const newVsReturningQuarterly = async (school?: School): Promise<QuarterlyResult
 
     // add empty rows as needed
     while (nextDate > date) { // we have no data for this day
-      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3}`, new: 0, returning: 0 });
+      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, new: 0, returning: 0 });
       date.setMonth(date.getMonth() + 3);
     }
 
     // add a normal row
-    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3}`, new: r.new, returning: r.returning });
+    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, new: r.new, returning: r.returning });
     date.setMonth(date.getMonth() + 3);
   }
 

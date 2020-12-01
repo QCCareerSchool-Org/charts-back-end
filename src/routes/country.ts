@@ -142,12 +142,12 @@ const countryQuarterly = async (school?: School): Promise<QuarterlyResults> => {
 
     // add empty rows as needed
     while (nextDate > date) { // we have no data for this day
-      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3}`, us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
+      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
       date.setMonth(date.getMonth() + 3);
     }
 
     // add a normal row
-    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3}`, us: r.us, ca: r.ca, gb: r.gb, au: r.au, nz: r.nz, other: r.other });
+    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, us: r.us, ca: r.ca, gb: r.gb, au: r.au, nz: r.nz, other: r.other });
     date.setMonth(date.getMonth() + 3);
   }
 

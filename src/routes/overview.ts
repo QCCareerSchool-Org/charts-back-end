@@ -142,12 +142,12 @@ const overviewQuarterly = async (school?: School): Promise<QuarterlyResults> => 
 
     // add empty rows as needed
     while (nextDate > date) { // we have no data for this day
-      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3}`, sales: 0 });
+      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, sales: 0 });
       date.setMonth(date.getMonth() + 3);
     }
 
     // add a normal row
-    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3}`, sales: r.sales });
+    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, sales: r.sales });
     date.setMonth(date.getMonth() + 3);
   }
 
