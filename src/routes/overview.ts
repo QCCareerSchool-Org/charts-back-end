@@ -101,9 +101,8 @@ const overviewWeekly = async (school?: School): Promise<Results> => {
 };
 
 const overviewMonthly = async (school?: School): Promise<Results> => {
-  // start 24 months from the start of this month
-  const start = firstOfTheMonth();
-  start.setMonth(start.getMonth() - 24);
+  // start 2012-06-01
+  const start = new Date(2012, 6);
 
   // get the data
   const data = await getOverviewMonthlyData(start, school);
