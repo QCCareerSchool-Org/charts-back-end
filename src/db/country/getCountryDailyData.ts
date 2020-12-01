@@ -5,10 +5,14 @@ type DailyResult = Array<{ us: number, ca: number, gb: number, au: number, nz: n
 
 export const getCountryDailyData = async (start: Date, school?: School): Promise<DailyResult> => {
   const connection = await (await pool).getConnection();
-  if (school) {
-    return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
-  } else {
-    return await connection.query(sqlAllSchools, [ start, start ]);
+  try {
+    if (school) {
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
+    } else {
+      return await connection.query(sqlAllSchools, [ start, start ]);
+    }
+  } finally {
+    connection.release();
   }
 };
 

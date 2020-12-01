@@ -4,12 +4,16 @@ import { pool } from '../../pool';
 type QuarterlyResult = Array<{ sales: number, y: number, q: number }>;
 
 export const getOverviewQuarterlyData = async (start: Date, school?: School): Promise<QuarterlyResult> => {
-  const connection = await (await pool).getConnection();
-  if (school) {
-    return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
-  } else {
-    return await connection.query(sqlAllSchools, [ start, start ]);
-  }
+	const connection = await (await pool).getConnection();
+	try {
+		if (school) {
+			return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
+		} else {
+			return await connection.query(sqlAllSchools, [ start, start ]);
+		}
+	} finally {
+		connection.release();
+	}
 };
 
 const sqlAllSchools = `
