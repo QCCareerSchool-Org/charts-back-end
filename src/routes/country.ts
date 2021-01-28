@@ -5,9 +5,8 @@ import { overviewSchema, RequestBody, School } from '../schema';
 import { today } from '../lib/today';
 import { lastMonday } from '../lib/lastMonday';
 import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
-import { firstOfTheMonth } from '../lib/firstOfTheMonth';
 import { getCountryQuarterlyData } from '../db/country/getCountryQuarterlyData';
-import { getCountryMonthlyData } from '../db/country/geCountryMonthlyData';
+import { getCountryMonthlyData } from '../db/country/getCountryMonthlyData';
 import { getCountryWeeklyData } from '../db/country/getCountryWeeklyData';
 import { getCountryDailyData } from '../db/country/getCountryDailyData';
 
@@ -54,10 +53,12 @@ const countryDaily = async (school?: School): Promise<Results> => {
   const result: Results = [];
   const date = start;
   for (const r of data) {
-    const nextDate = new Date(`${r.y}-${r.m - 1}-${r.d}T00:00:00-0400`);
-
     // add empty rows as needed
-    while (nextDate > date) { // we have no data for this day
+    while (
+      r.y > date.getFullYear() ||
+      r.y === date.getFullYear() && r.m > date.getMonth() + 1 ||
+      r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate()
+    ) { // we have no data for this day
       result.push({ date: new Date(date), us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
       date.setDate(date.getDate() + 1);
     }
