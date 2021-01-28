@@ -7,7 +7,7 @@ import { lastMonday } from '../lib/lastMonday';
 import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
 import { firstOfTheMonth } from '../lib/firstOfTheMonth';
 import { getCountryQuarterlyData } from '../db/country/getCountryQuarterlyData';
-import { getCountryMonthlyData } from '../db/country/geCountryMonthlyData';
+import { getCountryMonthlyData } from '../db/country/getCountryMonthlyData';
 import { getCountryWeeklyData } from '../db/country/getCountryWeeklyData';
 import { getCountryDailyData } from '../db/country/getCountryDailyData';
 
