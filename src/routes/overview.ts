@@ -9,7 +9,6 @@ import { getOverviewQuarterlyData } from '../db/overview/getOverviewQuarterlyDat
 import { today } from '../lib/today';
 import { lastMonday } from '../lib/lastMonday';
 import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
-import { firstOfTheMonth } from '../lib/firstOfTheMonth';
 
 export const overview = asyncWrapper(async (req, res) => {
   // validate the request
@@ -54,10 +53,12 @@ const overviewDaily = async (school?: School): Promise<Results> => {
   const result: Results = [];
   const date = start;
   for (const r of data) {
-    const nextDate = new Date(`${r.y}-${r.m - 1}-${r.d}T00:00:00-0400`);
-
     // add empty rows as needed
-    while (nextDate > date) { // we have no data for this day
+    while (
+      r.y > date.getFullYear() ||
+      r.y === date.getFullYear() && r.m > date.getMonth() + 1 ||
+      r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate()
+    ) { // we have no data for this day
       result.push({ date: new Date(date), sales: 0 });
       date.setDate(date.getDate() + 1);
     }
