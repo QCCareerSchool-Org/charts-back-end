@@ -37,7 +37,7 @@ FROM (
 		SELECT country_code, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
 		FROM enrollments.enrollments e
 		LEFT JOIN enrollments.courses c USING (enrollment_id)
-		WHERE NOT e.success = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
+		WHERE hidden = 0 AND NOT e.success = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
 	)
 ) x
 GROUP BY y, m, d
