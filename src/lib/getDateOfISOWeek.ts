@@ -1,5 +1,5 @@
 export const getDateOfISOWeek = (y: number, w: number): Date => {
-  const simple = new Date(y, 0, 1 + (w - 1) * 7);
+  const simple = new Date(y, 0, 1 + ((w - 1) * 7));
   const dow = simple.getDay();
   const ISOweekStart = simple;
   if (dow <= 4) {

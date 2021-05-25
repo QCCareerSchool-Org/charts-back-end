@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
 import fs from 'fs';
+import dotenv from 'dotenv';
 import mysql from 'promise-mysql';
 import { logger } from './logger';
 
@@ -11,7 +11,7 @@ const options: mysql.PoolConfig = {
   charset: process.env.DB_CHARSET,
   connectionLimit: typeof process.env.DB_CONNECTION_LIMIT === 'undefined' ? DEFAULT_CONNECTION_LIMIT : parseInt(process.env.DB_CONNECTION_LIMIT, 10),
   database: process.env.DB_DATABASE,
-  debug: process.env.DB_DEBUG === 'TRUE' ? true : false,
+  debug: process.env.DB_DEBUG === 'TRUE',
   password: process.env.DB_PASSWORD,
   user: process.env.DB_USERNAME,
 };

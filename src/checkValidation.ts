@@ -13,7 +13,7 @@ if (typeof secret === 'undefined') {
   throw Error('JWT_SECRET environment variable is required');
 }
 
-const verify = (token: string): Promise<any> => {
+const verify = async (token: string): Promise<any> => {
   return new Promise((res, rej) => {
     jwt.verify(token, secret, { issuer }, (err, decoded) => {
       if (err) {

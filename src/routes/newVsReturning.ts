@@ -1,14 +1,14 @@
 import * as HttpStatus from '@qccareerschool/http-status';
 
 import { asyncWrapper } from '../asyncWrapper';
-import { overviewSchema, RequestBody, School } from '../schema';
-import { today } from '../lib/today';
-import { lastMonday } from '../lib/lastMonday';
-import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
 import { getNewVsReturningDailyData } from '../db/newVsReturning/getNewVsReturningDailyData';
-import { getNewVsReturningWeeklyData } from '../db/newVsReturning/getNewVsReturningWeeklyData';
 import { getNewVsReturningMonthlyData } from '../db/newVsReturning/getNewVsReturningMonthlyData';
 import { getNewVsReturningQuarterlyData } from '../db/newVsReturning/getNewVsReturningQuarterlyData';
+import { getNewVsReturningWeeklyData } from '../db/newVsReturning/getNewVsReturningWeeklyData';
+import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
+import { lastMonday } from '../lib/lastMonday';
+import { today } from '../lib/today';
+import { overviewSchema, RequestBody, School } from '../schema';
 
 export const newVsReturning = asyncWrapper(async (req, res) => {
   // validate the request
@@ -38,13 +38,13 @@ export const newVsReturning = asyncWrapper(async (req, res) => {
   }
 });
 
-type Results = Array<{ date: Date, new: number, returning: number }>;
-type QuarterlyResults = Array<{ label: string, new: number, returning: number }>;
+type Results = Array<{ date: Date; new: number; returning: number }>;
+type QuarterlyResults = Array<{ label: string; new: number; returning: number }>;
 
 const newVsReturningDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago
   const start = today();
-  start.setDate(start.getDate() - 7 * 8);
+  start.setDate(start.getDate() - (7 * 8));
 
   // get the data from the database
   const data = await getNewVsReturningDailyData(start, school);
@@ -56,8 +56,8 @@ const newVsReturningDaily = async (school?: School): Promise<Results> => {
     // add empty rows as needed
     while (
       r.y > date.getFullYear() ||
-      r.y === date.getFullYear() && r.m > date.getMonth() + 1 ||
-      r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate()
+      (r.y === date.getFullYear() && r.m > date.getMonth() + 1) ||
+      (r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate())
     ) { // we have no data for this day
       result.push({ date: new Date(date), new: 0, returning: 0 });
       date.setDate(date.getDate() + 1);
@@ -74,7 +74,7 @@ const newVsReturningDaily = async (school?: School): Promise<Results> => {
 const newVsReturningWeekly = async (school?: School): Promise<Results> => {
   // start 52 weeks from last monday
   const start = lastMonday();
-  start.setDate(start.getDate() - 7 * 52); // 52 weeks ago
+  start.setDate(start.getDate() - (7 * 52)); // 52 weeks ago
 
   // get the data
   const data = await getNewVsReturningWeeklyData(start, school);
@@ -88,6 +88,7 @@ const newVsReturningWeekly = async (school?: School): Promise<Results> => {
     const nextDate = getDateOfISOWeek(year, week);
 
     // add empty rows as needed
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), new: 0, returning: 0 });
       date.setDate(date.getDate() + 7);
@@ -115,6 +116,7 @@ const newVsReturningMonthly = async (school?: School): Promise<Results> => {
     const nextDate = new Date(r.y, r.m - 1);
 
     // add empty rows as needed
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), new: 0, returning: 0 });
       date.setMonth(date.getMonth() + 1);
@@ -142,13 +144,14 @@ const newVsReturningQuarterly = async (school?: School): Promise<QuarterlyResult
     const nextDate = new Date(r.y, (r.q - 1) * 3);
 
     // add empty rows as needed
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
-      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, new: 0, returning: 0 });
+      result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, new: 0, returning: 0 });
       date.setMonth(date.getMonth() + 3);
     }
 
     // add a normal row
-    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, new: r.new, returning: r.returning });
+    result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, new: r.new, returning: r.returning });
     date.setMonth(date.getMonth() + 3);
   }
 

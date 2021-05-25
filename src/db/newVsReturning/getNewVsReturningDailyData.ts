@@ -1,16 +1,16 @@
-import { School } from '../../schema';
 import { pool } from '../../pool';
+import { School } from '../../schema';
 
-type DailyResult = Array<{ new: number, returning: number, y: number, m: number; d: number }>;
+type DailyResult = Array<{ new: number; returning: number; y: number; m: number; d: number }>;
 
 export const getNewVsReturningDailyData = async (start: Date, school?: School): Promise<DailyResult> => {
   const connection = await (await pool).getConnection();
   try {
     if (school) {
       return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
-    } else {
-      return await connection.query(sqlAllSchools, [ start, start ]);
     }
+    return await connection.query(sqlAllSchools, [ start, start ]);
+
   } finally {
     connection.release();
   }
@@ -18,23 +18,23 @@ export const getNewVsReturningDailyData = async (start: Date, school?: School): 
 
 const sqlAllSchools = `
 SELECT
-	SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
+  SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
   SUM(CASE WHEN existing_student = 0 THEN 1 ELSE 0 END) \`new\`,
   y, m, d
 FROM (
-	(
-		SELECT 0 AS existing_student, YEAR(e.start_time) y, MONTH(e.start_time) m, DAY(e.start_time) d
-		FROM general.enrollments e
-		LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
-		WHERE NOT e.success = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
-	)
-	UNION ALL
-	(
-		SELECT e.existing_student, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
-		FROM enrollments.enrollments e
-		LEFT JOIN enrollments.courses c USING (enrollment_id)
-		WHERE hidden = 0 AND NOT e.success = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
-	)
+  (
+    SELECT 0 AS existing_student, YEAR(e.start_time) y, MONTH(e.start_time) m, DAY(e.start_time) d
+    FROM general.enrollments e
+    LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
+    WHERE NOT e.success = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
+  )
+  UNION ALL
+  (
+    SELECT e.existing_student, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
+    FROM enrollments.enrollments e
+    LEFT JOIN enrollments.courses c USING (enrollment_id)
+    WHERE hidden = 0 AND NOT e.success = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
+  )
 ) x
 GROUP BY y, m, d
 ORDER BY y, m, d`;

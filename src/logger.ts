@@ -22,7 +22,7 @@ const host = process.env.LOG_EMAIL_HOST;
 if (typeof process.env.LOG_EMAIL_TLS === 'undefined') {
   throw new Error('LOG_EMAIL_TLS not specified in .env file');
 }
-const tls = process.env.LOG_EMAIL_TLS === 'true' ? true : false;
+const tls = process.env.LOG_EMAIL_TLS === 'true';
 
 if (typeof process.env.LOG_EMAIL_PORT === 'undefined') {
   throw new Error('LOG_EMAIL_PORT not specified in .env file');
@@ -44,7 +44,7 @@ const from = process.env.LOG_EMAIL_FROM;
  * @param key
  * @param value
  */
-const replacer = (key: string, value: unknown) => {
+const replacer: winston.Logform.JsonOptions['replacer'] = (key, value) => {
   if (value instanceof Error) {
     return Object.getOwnPropertyNames(value).reduce((previousValue, currentValue) => {
       if (currentValue === 'stack') {
@@ -55,16 +55,14 @@ const replacer = (key: string, value: unknown) => {
             return v.substr(0, 3) === 'at ' ? v.slice(3) : v;
           }),
         };
-      } else {
-        return {
-          ...previousValue,
-          [currentValue]: value[currentValue as keyof Error],
-        };
       }
+      return {
+        ...previousValue,
+        [currentValue]: value[currentValue as keyof Error],
+      };
     }, {});
-  } else {
-    return value;
   }
+  return value;
 };
 
 export const logger = winston.createLogger({
