@@ -1,14 +1,14 @@
 import * as HttpStatus from '@qccareerschool/http-status';
 
 import { asyncWrapper } from '../asyncWrapper';
-import { overviewSchema, RequestBody, School } from '../schema';
-import { today } from '../lib/today';
-import { lastMonday } from '../lib/lastMonday';
-import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
-import { getCountryQuarterlyData } from '../db/country/getCountryQuarterlyData';
-import { getCountryMonthlyData } from '../db/country/getCountryMonthlyData';
-import { getCountryWeeklyData } from '../db/country/getCountryWeeklyData';
 import { getCountryDailyData } from '../db/country/getCountryDailyData';
+import { getCountryMonthlyData } from '../db/country/getCountryMonthlyData';
+import { getCountryQuarterlyData } from '../db/country/getCountryQuarterlyData';
+import { getCountryWeeklyData } from '../db/country/getCountryWeeklyData';
+import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
+import { lastMonday } from '../lib/lastMonday';
+import { today } from '../lib/today';
+import { overviewSchema, RequestBody, School } from '../schema';
 
 export const country = asyncWrapper(async (req, res) => {
   // validate the request
@@ -16,7 +16,13 @@ export const country = asyncWrapper(async (req, res) => {
   try {
     query = await overviewSchema.validate(req.query);
   } catch (err) {
-    throw new HttpStatus.BadRequest(err);
+    if (err instanceof Error) {
+      throw new HttpStatus.BadRequest(err.message);
+    } else if (typeof err === 'string') {
+      throw new HttpStatus.BadRequest(err);
+    } else {
+      throw new HttpStatus.BadRequest('unknown error');
+    }
   }
 
   // send the response
@@ -38,13 +44,13 @@ export const country = asyncWrapper(async (req, res) => {
   }
 });
 
-type Results = Array<{ date: Date, us: number, ca: number, gb: number, au: number, nz: number, other: number }>;
-type QuarterlyResults = Array<{ label: string, us: number, ca: number, gb: number, au: number, nz: number, other: number }>;
+type Results = Array<{ date: Date; us: number; ca: number; gb: number; au: number; nz: number; other: number }>;
+type QuarterlyResults = Array<{ label: string; us: number; ca: number; gb: number; au: number; nz: number; other: number }>;
 
 const countryDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago
   const start = today();
-  start.setDate(start.getDate() - 7 * 8);
+  start.setDate(start.getDate() - (7 * 8));
 
   // get the data from the database
   const data = await getCountryDailyData(start, school);
@@ -56,8 +62,8 @@ const countryDaily = async (school?: School): Promise<Results> => {
     // add empty rows as needed
     while (
       r.y > date.getFullYear() ||
-      r.y === date.getFullYear() && r.m > date.getMonth() + 1 ||
-      r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate()
+      (r.y === date.getFullYear() && r.m > date.getMonth() + 1) ||
+      (r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate())
     ) { // we have no data for this day
       result.push({ date: new Date(date), us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
       date.setDate(date.getDate() + 1);
@@ -74,7 +80,7 @@ const countryDaily = async (school?: School): Promise<Results> => {
 const countryWeekly = async (school?: School): Promise<Results> => {
   // start 52 weeks from last monday
   const start = lastMonday();
-  start.setDate(start.getDate() - 7 * 52); // 52 weeks ago
+  start.setDate(start.getDate() - (7 * 52)); // 52 weeks ago
 
   // get the data
   const data = await getCountryWeeklyData(start, school);
@@ -88,6 +94,7 @@ const countryWeekly = async (school?: School): Promise<Results> => {
     const nextDate = getDateOfISOWeek(year, week);
 
     // add empty rows as needed
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
       date.setDate(date.getDate() + 7);
@@ -115,6 +122,7 @@ const countryMonthly = async (school?: School): Promise<Results> => {
     const nextDate = new Date(r.y, r.m - 1);
 
     // add empty rows as needed
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
       date.setMonth(date.getMonth() + 1);
@@ -142,13 +150,14 @@ const countryQuarterly = async (school?: School): Promise<QuarterlyResults> => {
     const nextDate = new Date(r.y, (r.q - 1) * 3);
 
     // add empty rows as needed
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
-      result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
+      result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, us: 0, ca: 0, gb: 0, au: 0, nz: 0, other: 0 });
       date.setMonth(date.getMonth() + 3);
     }
 
     // add a normal row
-    result.push({ label: `${date.getFullYear()}-Q${date.getMonth() / 3 + 1}`, us: r.us, ca: r.ca, gb: r.gb, au: r.au, nz: r.nz, other: r.other });
+    result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, us: r.us, ca: r.ca, gb: r.gb, au: r.au, nz: r.nz, other: r.other });
     date.setMonth(date.getMonth() + 3);
   }
 

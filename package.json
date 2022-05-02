@@ -1,19 +1,24 @@
 {
   "name": "charts-back-end",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint --ext .ts src"
   },
   "author": "QC Career School",
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.8.2",
-    "@typescript-eslint/parser": "^4.8.2",
+    "@types/jest": "^26.0.23",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
     "eslint": "^7.14.0",
+    "eslint-plugin-import": "^2.23.3",
+    "eslint-plugin-jest": "^24.3.6",
+    "jest": "^27.0.1",
     "typescript": "^4.1.2"
   },
   "dependencies": {
