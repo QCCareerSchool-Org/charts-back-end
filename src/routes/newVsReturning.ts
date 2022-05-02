@@ -16,7 +16,13 @@ export const newVsReturning = asyncWrapper(async (req, res) => {
   try {
     query = await overviewSchema.validate(req.query);
   } catch (err) {
-    throw new HttpStatus.BadRequest(err);
+    if (err instanceof Error) {
+      throw new HttpStatus.BadRequest(err.message);
+    } else if (typeof err === 'string') {
+      throw new HttpStatus.BadRequest(err);
+    } else {
+      throw new HttpStatus.BadRequest('unknown error');
+    }
   }
 
   // send the response
