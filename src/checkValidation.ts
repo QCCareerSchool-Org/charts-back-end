@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as HttpStatus from '@qccareerschool/http-status';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
@@ -26,7 +28,7 @@ const verify = async (token: string): Promise<any> => {
 
 export const checkValidation = asyncWrapper(async (req, res, next) => {
   // check for access token
-  const accessToken = req.cookies.access;
+  const accessToken = req.cookies.access as string | undefined;
   if (typeof accessToken === 'undefined') {
     throw new HttpStatus.Unauthorized('No access token detected');
   }

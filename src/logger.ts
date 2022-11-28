@@ -62,6 +62,7 @@ const replacer: winston.Logform.JsonOptions['replacer'] = (key, value) => {
       };
     }, {});
   }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return value;
 };
 

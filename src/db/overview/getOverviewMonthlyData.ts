@@ -7,9 +7,9 @@ export const getOverviewMonthlyData = async (start: Date, school?: School): Prom
   const connection = await (await pool).getConnection();
   try {
     if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as MonthlyResult;
     }
-    return await connection.query(sqlAllSchools, [ start, start ]);
+    return await connection.query(sqlAllSchools, [ start, start ]) as MonthlyResult;
 
   } finally {
     connection.release();

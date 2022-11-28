@@ -7,9 +7,9 @@ export const getNewVsReturningWeeklyData = async (start: Date, school?: School):
   const connection = await (await pool).getConnection();
   try {
     if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as WeeklyResult;
     }
-    return await connection.query(sqlAllSchools, [ start, start ]);
+    return await connection.query(sqlAllSchools, [ start, start ]) as WeeklyResult;
 
   } finally {
     connection.release();

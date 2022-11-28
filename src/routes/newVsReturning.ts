@@ -50,7 +50,7 @@ type QuarterlyResults = Array<{ label: string; new: number; returning: number }>
 const newVsReturningDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago
   const start = today();
-  start.setDate(start.getDate() - (7 * 8));
+  start.setDate(start.getDate() - (7 * 16));
 
   // get the data from the database
   const data = await getNewVsReturningDailyData(start, school);
@@ -80,7 +80,7 @@ const newVsReturningDaily = async (school?: School): Promise<Results> => {
 const newVsReturningWeekly = async (school?: School): Promise<Results> => {
   // start 52 weeks from last monday
   const start = lastMonday();
-  start.setDate(start.getDate() - (7 * 52)); // 52 weeks ago
+  start.setDate(start.getDate() - (7 * 104)); // 104 weeks (~2 years) ago
 
   // get the data
   const data = await getNewVsReturningWeeklyData(start, school);
@@ -89,8 +89,8 @@ const newVsReturningWeekly = async (school?: School): Promise<Results> => {
   const result: Results = [];
   const date = start;
   for (const r of data) {
-    const year = parseInt(r.w.toString().substr(0, 4), 10);
-    const week = parseInt(r.w.toString().substr(4), 10);
+    const year = parseInt(r.w.toString().substring(0, 4), 10);
+    const week = parseInt(r.w.toString().substring(4), 10);
     const nextDate = getDateOfISOWeek(year, week);
 
     // add empty rows as needed
