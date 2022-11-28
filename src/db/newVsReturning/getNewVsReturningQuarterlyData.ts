@@ -7,9 +7,9 @@ export const getNewVsReturningQuarterlyData = async (start: Date, school?: Schoo
   const connection = await (await pool).getConnection();
   try {
     if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]);
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as QuarterlyResult;
     }
-    return await connection.query(sqlAllSchools, [ start, start ]);
+    return await connection.query(sqlAllSchools, [ start, start ]) as QuarterlyResult;
 
   } finally {
     connection.release();
