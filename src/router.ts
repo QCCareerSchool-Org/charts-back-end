@@ -10,4 +10,4 @@ export const router = express.Router();
 router.get('/overview', overview);
 router.get('/newVsReturning', newVsReturning);
 router.get('/country', country);
-router.get('/paymentPlan', paymentPlan);
+router.get('/paymentPlans', paymentPlan);
