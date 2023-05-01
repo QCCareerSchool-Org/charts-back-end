@@ -46,7 +46,7 @@ SELECT
   w
 FROM (
   (
-    SELECT 0 AS existing_student, YEARWEEK(e.start_time, 1) w
+    SELECT e.payment_plan, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses ec ON ec.enrollment_id = e.id
     LEFT JOIN general.courses c ON c.code = ec.course_code
@@ -55,7 +55,7 @@ FROM (
   )
   UNION ALL
   (
-    SELECT e.existing_student, YEARWEEK(e.created, 1) w
+    SELECT e.payment_plan, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     LEFT JOIN general.courses z ON c.course_code = z.code

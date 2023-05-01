@@ -46,7 +46,7 @@ SELECT
   y, m, d
 FROM (
   (
-    SELECT 0 AS existing_student, YEAR(e.start_time) y, MONTH(e.start_time) m, DAY(e.start_time) d
+    SELECT e.payment_plan, YEAR(e.start_time) y, MONTH(e.start_time) m, DAY(e.start_time) d
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses ec ON ec.enrollment_id = e.id
     LEFT JOIN general.courses c ON c.code = ec.course_code
@@ -55,7 +55,7 @@ FROM (
   )
   UNION ALL
   (
-    SELECT e.existing_student, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
+    SELECT e.payment_plan, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     LEFT JOIN general.courses z ON c.course_code = z.code
