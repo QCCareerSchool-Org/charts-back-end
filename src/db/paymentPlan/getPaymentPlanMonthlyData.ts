@@ -23,14 +23,14 @@ SELECT
   y, m
 FROM (
   (
-    SELECT 0 AS existing_student, YEAR(e.start_time) y, MONTH(e.start_time) m
+    SELECT e.payment_plan, YEAR(e.start_time) y, MONTH(e.start_time) m
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
     WHERE NOT e.success = 0 AND e.voided = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
   UNION ALL
   (
-    SELECT e.existing_student, YEAR(e.created) y, MONTH(e.created) m
+    SELECT e.payment_plan, YEAR(e.created) y, MONTH(e.created) m
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'

@@ -23,14 +23,14 @@ SELECT
   w
 FROM (
   (
-    SELECT 0 AS existing_student, YEARWEEK(e.start_time, 1) w
+    SELECT e.payment_plan, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
     WHERE NOT e.success = 0 AND e.voided = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
   UNION ALL
   (
-    SELECT e.existing_student, YEARWEEK(e.created, 1) w
+    SELECT e.payment_plan, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
