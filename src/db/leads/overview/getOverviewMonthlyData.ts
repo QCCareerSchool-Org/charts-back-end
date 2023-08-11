@@ -19,13 +19,13 @@ export const getOverviewMonthlyData = async (start: Date, school?: School): Prom
 const sqlAllSchools = `
 SELECT COUNT(*) \`count\`, YEAR(created) y, MONTH(created) m
 FROM leads.leads
-WHERE created >= ? AND NOT e.email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND NOT email_address LIKE '%@qccareerschool.com'
 GROUP BY y, m
 ORDER BY y, m`;
 
 const sqlOneSchool = `
 SELECT COUNT(*) \`count\`, YEAR(created) y, MONTH(created) m
 FROM leads.leads
-WHERE created >= ? AND schoolName = ? AND NOT e.email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND schoolName = ? AND NOT email_address LIKE '%@qccareerschool.com'
 GROUP BY y, m
 ORDER BY y, m`;
