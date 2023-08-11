@@ -17,15 +17,15 @@ export const getOverviewDailyData = async (start: Date, school?: School): Promis
 };
 
 const sqlAllSchools = `
-SELECT COUNT(*) \`count\`, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
+SELECT COUNT(*) \`count\`, YEAR(created) y, MONTH(created) m, DAY(created) d
 FROM leads.leads
-WHERE e.created >= ? AND NOT e.email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND NOT e.email_address LIKE '%@qccareerschool.com'
 GROUP BY y, m, d
 ORDER BY y, m, d`;
 
 const sqlOneSchool = `
-SELECT COUNT(*) \`count\`, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
+SELECT COUNT(*) \`count\`, YEAR(created) y, MONTH(created) m, DAY(created) d
 FROM leads.leads
-WHERE e.created >= ? AND schoolName = ? AND NOT e.email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND schoolName = ? AND NOT e.email_address LIKE '%@qccareerschool.com'
 GROUP BY y, m, d
 ORDER BY y, m, d`;

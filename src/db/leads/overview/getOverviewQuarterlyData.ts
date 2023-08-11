@@ -17,15 +17,15 @@ export const getOverviewQuarterlyData = async (start: Date, school?: School): Pr
 };
 
 const sqlAllSchools = `
-SELECT COUNT(*) \`count\`, YEAR(e.created) y, QUARTER(e.created) q
+SELECT COUNT(*) \`count\`, YEAR(created) y, QUARTER(created) q
 FROM leads.leads
-WHERE e.created >= ? AND NOT e.email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND NOT e.email_address LIKE '%@qccareerschool.com'
 GROUP BY y, q
 ORDER BY y, q`;
 
 const sqlOneSchool = `
-SELECT COUNT(*) \`count\`, YEAR(e.created) y, QUARTER(e.created) q
+SELECT COUNT(*) \`count\`, YEAR(created) y, QUARTER(created) q
 FROM leads.leads
-WHERE e.created >= ? AND schoolName = ? AND NOT e.email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND schoolName = ? AND NOT e.email_address LIKE '%@qccareerschool.com'
 GROUP BY y, q
 ORDER BY y, q`;
