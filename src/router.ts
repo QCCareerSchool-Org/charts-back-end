@@ -1,13 +1,16 @@
 import express from 'express';
-import { country } from './routes/country';
 
-import { newVsReturning } from './routes/newVsReturning';
-import { overview } from './routes/overview';
-import { paymentPlan } from './routes/paymentPlan';
+import { overview as leadsOverview } from './routes/leads/overview';
+import { country } from './routes/sales/country';
+import { newVsReturning } from './routes/sales/newVsReturning';
+import { overview } from './routes/sales/overview';
+import { paymentPlan } from './routes/sales/paymentPlan';
 
 export const router = express.Router();
 
-router.get('/overview', overview);
-router.get('/newVsReturning', newVsReturning);
-router.get('/country', country);
-router.get('/paymentPlans', paymentPlan);
+router.get('/leads/overview', leadsOverview);
+
+router.get('/sales/overview', overview);
+router.get('/sales/newVsReturning', newVsReturning);
+router.get('/sales/country', country);
+router.get('/sales/paymentPlans', paymentPlan);

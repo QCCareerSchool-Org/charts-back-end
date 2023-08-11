@@ -1,16 +1,16 @@
 import * as HttpStatus from '@qccareerschool/http-status';
 
-import { asyncWrapper } from '../asyncWrapper';
-import { getPaymentPlanDailyData } from '../db/paymentPlan/getPaymentPlanDailyData';
-import { getPaymentPlanMonthlyData } from '../db/paymentPlan/getPaymentPlanMonthlyData';
-import { getPaymentPlanQuarterlyData } from '../db/paymentPlan/getPaymentPlanQuarterlyData';
-import { getPaymentPlanWeeklyData } from '../db/paymentPlan/getPaymentPlanWeeklyData';
-import { getDateOfISOWeek } from '../lib/getDateOfISOWeek';
-import { lastMonday } from '../lib/lastMonday';
-import { today } from '../lib/today';
-import { overviewSchema, RequestBody, School } from '../schema';
+import { asyncWrapper } from '../../asyncWrapper';
+import { getOverviewDailyData } from '../../db/leads/overview/getOverviewDailyData';
+import { getOverviewMonthlyData } from '../../db/leads/overview/getOverviewMonthlyData';
+import { getOverviewQuarterlyData } from '../../db/leads/overview/getOverviewQuarterlyData';
+import { getOverviewWeeklyData } from '../../db/leads/overview/getOverviewWeeklyData';
+import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek';
+import { lastMonday } from '../../lib/lastMonday';
+import { today } from '../../lib/today';
+import { overviewSchema, RequestBody, School } from '../../schema';
 
-export const paymentPlan = asyncWrapper(async (req, res) => {
+export const overview = asyncWrapper(async (req, res) => {
   // validate the request
   let query: RequestBody;
   try {
@@ -28,32 +28,32 @@ export const paymentPlan = asyncWrapper(async (req, res) => {
   // send the response
   switch (query.period) {
     case 'daily':
-      res.send(await paymentPlanDaily(query.school));
+      res.send(await overviewDaily(query.school));
       break;
     case 'weekly':
-      res.send(await paymentPlanWeekly(query.school));
+      res.send(await overviewWeekly(query.school));
       break;
     case 'monthly':
-      res.send(await paymentPlanMonthly(query.school));
+      res.send(await overviewMonthly(query.school));
       break;
     case 'quarterly':
-      res.send(await paymentPlanQuarterly(query.school));
+      res.send(await overviewQuarterly(query.school));
       break;
     default:
       throw new HttpStatus.InternalServerError('Unrecognized period');
   }
 });
 
-type Results = Array<{ date: Date; full: number; part: number }>;
-type QuarterlyResults = Array<{ label: string; full: number; part: number }>;
+type Results = Array<{ date: Date; count: number }>;
+type QuarterlyResults = Array<{ label: string; count: number }>;
 
-const paymentPlanDaily = async (school?: School): Promise<Results> => {
+const overviewDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago
   const start = today();
   start.setDate(start.getDate() - (7 * 16));
 
   // get the data from the database
-  const data = await getPaymentPlanDailyData(start, school);
+  const data = await getOverviewDailyData(start, school);
 
   // create the reponse
   const result: Results = [];
@@ -65,25 +65,25 @@ const paymentPlanDaily = async (school?: School): Promise<Results> => {
       (r.y === date.getFullYear() && r.m > date.getMonth() + 1) ||
       (r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate())
     ) { // we have no data for this day
-      result.push({ date: new Date(date), full: 0, part: 0 });
+      result.push({ date: new Date(date), count: 0 });
       date.setDate(date.getDate() + 1);
     }
 
     // add a normal row
-    result.push({ date: new Date(date), full: r.full, part: r.part });
+    result.push({ date: new Date(date), count: r.count });
     date.setDate(date.getDate() + 1);
   }
 
   return result;
 };
 
-const paymentPlanWeekly = async (school?: School): Promise<Results> => {
+const overviewWeekly = async (school?: School): Promise<Results> => {
   // start 52 weeks from last monday
   const start = lastMonday();
   start.setDate(start.getDate() - (7 * 104)); // 104 weeks (~2 years) ago
 
   // get the data
-  const data = await getPaymentPlanWeeklyData(start, school);
+  const data = await getOverviewWeeklyData(start, school);
 
   // create the reponse
   const result: Results = [];
@@ -96,24 +96,24 @@ const paymentPlanWeekly = async (school?: School): Promise<Results> => {
     // add empty rows as needed
     // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
-      result.push({ date: new Date(date), full: 0, part: 0 });
+      result.push({ date: new Date(date), count: 0 });
       date.setDate(date.getDate() + 7);
     }
 
     // add a normal row
-    result.push({ date: new Date(date), full: r.full, part: r.part });
+    result.push({ date: new Date(date), count: r.count });
     date.setDate(date.getDate() + 7);
   }
 
   return result;
 };
 
-const paymentPlanMonthly = async (school?: School): Promise<Results> => {
+const overviewMonthly = async (school?: School): Promise<Results> => {
   // start 2012-06-01
   const start = new Date(2012, 6);
 
   // get the data
-  const data = await getPaymentPlanMonthlyData(start, school);
+  const data = await getOverviewMonthlyData(start, school);
 
   // create the reponse
   const result: Results = [];
@@ -124,24 +124,24 @@ const paymentPlanMonthly = async (school?: School): Promise<Results> => {
     // add empty rows as needed
     // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
-      result.push({ date: new Date(date), full: 0, part: 0 });
+      result.push({ date: new Date(date), count: 0 });
       date.setMonth(date.getMonth() + 1);
     }
 
     // add a normal row
-    result.push({ date: new Date(date), full: r.full, part: r.part });
+    result.push({ date: new Date(date), count: r.count });
     date.setMonth(date.getMonth() + 1);
   }
 
   return result;
 };
 
-const paymentPlanQuarterly = async (school?: School): Promise<QuarterlyResults> => {
+const overviewQuarterly = async (school?: School): Promise<QuarterlyResults> => {
   // start 2012-Q3
   const start = new Date(2012, 9);
 
   // get the data
-  const data = await getPaymentPlanQuarterlyData(start, school);
+  const data = await getOverviewQuarterlyData(start, school);
 
   // create the reponse
   const result: QuarterlyResults = [];
@@ -152,12 +152,12 @@ const paymentPlanQuarterly = async (school?: School): Promise<QuarterlyResults> 
     // add empty rows as needed
     // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
-      result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, full: 0, part: 0 });
+      result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, count: 0 });
       date.setMonth(date.getMonth() + 3);
     }
 
     // add a normal row
-    result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, full: r.full, part: r.part });
+    result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, count: r.count });
     date.setMonth(date.getMonth() + 3);
   }
 

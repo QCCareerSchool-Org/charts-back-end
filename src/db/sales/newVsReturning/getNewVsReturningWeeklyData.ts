@@ -1,15 +1,15 @@
-import { pool } from '../../pool';
-import { School } from '../../schema';
+import { pool } from '../../../pool';
+import { School } from '../../../schema';
 
-type DailyResult = Array<{ new: number; returning: number; y: number; m: number; d: number }>;
+type WeeklyResult = Array<{ new: number; returning: number; w: number }>;
 
-export const getNewVsReturningDailyData = async (start: Date, school?: School): Promise<DailyResult> => {
+export const getNewVsReturningWeeklyData = async (start: Date, school?: School): Promise<WeeklyResult> => {
   const connection = await (await pool).getConnection();
   try {
     if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as DailyResult;
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as WeeklyResult;
     }
-    return await connection.query(sqlAllSchools, [ start, start ]) as DailyResult;
+    return await connection.query(sqlAllSchools, [ start, start ]) as WeeklyResult;
 
   } finally {
     connection.release();
@@ -20,33 +20,33 @@ const sqlAllSchools = `
 SELECT
   SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
   SUM(CASE WHEN existing_student = 0 THEN 1 ELSE 0 END) \`new\`,
-  y, m, d
+  w
 FROM (
   (
-    SELECT 0 AS existing_student, YEAR(e.start_time) y, MONTH(e.start_time) m, DAY(e.start_time) d
+    SELECT 0 AS existing_student, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
     WHERE NOT e.success = 0 AND e.voided = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
   UNION ALL
   (
-    SELECT e.existing_student, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
+    SELECT e.existing_student, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
 ) x
-GROUP BY y, m, d
-ORDER BY y, m, d`;
+GROUP BY w
+ORDER BY w`;
 
 const sqlOneSchool = `
 SELECT
   SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
   SUM(CASE WHEN existing_student = 0 THEN 1 ELSE 0 END) \`new\`,
-  y, m, d
+  w
 FROM (
   (
-    SELECT 0 AS existing_student, YEAR(e.start_time) y, MONTH(e.start_time) m, DAY(e.start_time) d
+    SELECT 0 AS existing_student, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses ec ON ec.enrollment_id = e.id
     LEFT JOIN general.courses c ON c.code = ec.course_code
@@ -55,12 +55,12 @@ FROM (
   )
   UNION ALL
   (
-    SELECT e.existing_student, YEAR(e.created) y, MONTH(e.created) m, DAY(e.created) d
+    SELECT e.existing_student, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     LEFT JOIN general.courses z ON c.course_code = z.code
-    WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com' AND (z.school_name = ?)
+    WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com' AND z.school_name = ?
   )
 ) x
-GROUP BY y, m, d
-ORDER BY y, m, d`;
+GROUP BY w
+ORDER BY w`;

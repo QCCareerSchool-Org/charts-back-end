@@ -1,15 +1,15 @@
-import { pool } from '../../pool';
-import { School } from '../../schema';
+import { pool } from '../../../pool';
+import { School } from '../../../schema';
 
-type WeeklyResult = Array<{ sales: number; w: number }>;
+type MonthlyResult = Array<{ sales: number; y: number; m: number }>;
 
-export const getOverviewWeeklyData = async (start: Date, school?: School): Promise<WeeklyResult> => {
+export const getOverviewMonthlyData = async (start: Date, school?: School): Promise<MonthlyResult> => {
   const connection = await (await pool).getConnection();
   try {
     if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as WeeklyResult;
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as MonthlyResult;
     }
-    return await connection.query(sqlAllSchools, [ start, start ]) as WeeklyResult;
+    return await connection.query(sqlAllSchools, [ start, start ]) as MonthlyResult;
 
   } finally {
     connection.release();
@@ -17,30 +17,30 @@ export const getOverviewWeeklyData = async (start: Date, school?: School): Promi
 };
 
 const sqlAllSchools = `
-SELECT COUNT(*) sales, w
+SELECT COUNT(*) sales, y, m
 FROM (
   (
-    SELECT YEARWEEK(e.start_time, 1) w
+    SELECT YEAR(e.start_time) y, MONTH(e.start_time) m
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
     WHERE NOT e.success = 0 AND e.voided = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
   UNION ALL
   (
-    SELECT YEARWEEK(e.created, 1) w
+    SELECT YEAR(e.created) y, MONTH(e.created) m
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
 ) x
-GROUP BY w
-ORDER BY w`;
+GROUP BY y, m
+ORDER BY y, m`;
 
 const sqlOneSchool = `
-SELECT COUNT(*) sales, w
+SELECT COUNT(*) sales, y, m
 FROM (
   (
-    SELECT YEARWEEK(e.start_time, 1) w
+    SELECT YEAR(e.start_time) y, MONTH(e.start_time) m
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses ec ON ec.enrollment_id = e.id
     LEFT JOIN general.courses c ON c.code = ec.course_code
@@ -49,12 +49,12 @@ FROM (
   )
   UNION ALL
   (
-    SELECT YEARWEEK(e.created, 1) w
+    SELECT YEAR(e.created) y, MONTH(e.created) m
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     LEFT JOIN general.courses z ON c.course_code = z.code
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com' AND z.school_name = ?
   )
 ) x
-GROUP BY w
-ORDER BY w`;
+GROUP BY y, m
+ORDER BY y, m`;

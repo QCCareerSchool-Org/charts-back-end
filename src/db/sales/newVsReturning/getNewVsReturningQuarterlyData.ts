@@ -1,15 +1,15 @@
-import { pool } from '../../pool';
-import { School } from '../../schema';
+import { pool } from '../../../pool';
+import { School } from '../../../schema';
 
-type WeeklyResult = Array<{ us: number; ca: number; gb: number; au: number; nz: number; other: number; w: number }>;
+type QuarterlyResult = Array<{ new: number; returning: number; y: number; q: number }>;
 
-export const getCountryWeeklyData = async (start: Date, school?: School): Promise<WeeklyResult> => {
+export const getNewVsReturningQuarterlyData = async (start: Date, school?: School): Promise<QuarterlyResult> => {
   const connection = await (await pool).getConnection();
   try {
     if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as WeeklyResult;
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as QuarterlyResult;
     }
-    return await connection.query(sqlAllSchools, [ start, start ]) as WeeklyResult;
+    return await connection.query(sqlAllSchools, [ start, start ]) as QuarterlyResult;
 
   } finally {
     connection.release();
@@ -18,43 +18,36 @@ export const getCountryWeeklyData = async (start: Date, school?: School): Promis
 
 const sqlAllSchools = `
 SELECT
-  SUM(CASE WHEN country_code = 'US' THEN 1 ELSE 0 END) us,
-  SUM(CASE WHEN country_code = 'CA' THEN 1 ELSE 0 END) ca,
-  SUM(CASE WHEN country_code = 'GB' THEN 1 ELSE 0 END) gb,
-  SUM(CASE WHEN country_code = 'AU' THEN 1 ELSE 0 END) au,
-  SUM(CASE WHEN country_code = 'NZ' THEN 1 ELSE 0 END) nz,
-  SUM(CASE WHEN country_code = 'US' OR country_code = 'CA' OR country_code = 'GB' OR country_code = 'AU' OR country_code = 'NZ' THEN 0 ELSE 1 END) other,
-  w
+  SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
+  SUM(CASE WHEN existing_student = 0 THEN 1 ELSE 0 END) \`new\`,
+  y, q
 FROM (
   (
-    SELECT country_code, YEARWEEK(e.start_time, 1) w
+    SELECT 0 AS existing_student, YEAR(e.start_time) y, QUARTER(e.start_time) q
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
     WHERE NOT e.success = 0 AND e.voided = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
   UNION ALL
   (
-    SELECT country_code, YEARWEEK(e.created, 1) w
+    SELECT e.existing_student, YEAR(e.created) y, QUARTER(e.created) q
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
 ) x
-GROUP BY w
-ORDER BY w`;
+GROUP BY y, q
+ORDER BY y, q`;
 
 const sqlOneSchool = `
+
 SELECT
-  SUM(CASE WHEN country_code = 'US' THEN 1 ELSE 0 END) us,
-  SUM(CASE WHEN country_code = 'CA' THEN 1 ELSE 0 END) ca,
-  SUM(CASE WHEN country_code = 'GB' THEN 1 ELSE 0 END) gb,
-  SUM(CASE WHEN country_code = 'AU' THEN 1 ELSE 0 END) au,
-  SUM(CASE WHEN country_code = 'NZ' THEN 1 ELSE 0 END) nz,
-  SUM(CASE WHEN country_code = 'US' OR country_code = 'CA' OR country_code = 'GB' OR country_code = 'AU' OR country_code = 'NZ' THEN 0 ELSE 1 END) other,
-  w
+  SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
+  SUM(CASE WHEN existing_student = 0 THEN 1 ELSE 0 END) \`new\`,
+  y, q
 FROM (
   (
-    SELECT country_code, YEARWEEK(e.start_time, 1) w
+    SELECT 0 AS existing_student, YEAR(e.start_time) y, QUARTER(e.start_time) q
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses ec ON ec.enrollment_id = e.id
     LEFT JOIN general.courses c ON c.code = ec.course_code
@@ -63,12 +56,12 @@ FROM (
   )
   UNION ALL
   (
-    SELECT country_code, YEARWEEK(e.created, 1) w
+    SELECT e.existing_student, YEAR(e.created) y, QUARTER(e.created) q
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     LEFT JOIN general.courses z ON c.course_code = z.code
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com' AND z.school_name = ?
   )
 ) x
-GROUP BY w
-ORDER BY w`;
+GROUP BY y, q
+ORDER BY y, q`;

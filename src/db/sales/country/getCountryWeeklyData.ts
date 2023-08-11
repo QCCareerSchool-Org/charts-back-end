@@ -1,15 +1,15 @@
-import { pool } from '../../pool';
-import { School } from '../../schema';
+import { pool } from '../../../pool';
+import { School } from '../../../schema';
 
-type MonthlyResult = Array<{ us: number; ca: number; gb: number; au: number; nz: number; other: number; y: number; m: number }>;
+type WeeklyResult = Array<{ us: number; ca: number; gb: number; au: number; nz: number; other: number; w: number }>;
 
-export const getCountryMonthlyData = async (start: Date, school?: School): Promise<MonthlyResult> => {
+export const getCountryWeeklyData = async (start: Date, school?: School): Promise<WeeklyResult> => {
   const connection = await (await pool).getConnection();
   try {
     if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as MonthlyResult;
+      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as WeeklyResult;
     }
-    return await connection.query(sqlAllSchools, [ start, start ]) as MonthlyResult;
+    return await connection.query(sqlAllSchools, [ start, start ]) as WeeklyResult;
 
   } finally {
     connection.release();
@@ -24,24 +24,24 @@ SELECT
   SUM(CASE WHEN country_code = 'AU' THEN 1 ELSE 0 END) au,
   SUM(CASE WHEN country_code = 'NZ' THEN 1 ELSE 0 END) nz,
   SUM(CASE WHEN country_code = 'US' OR country_code = 'CA' OR country_code = 'GB' OR country_code = 'AU' OR country_code = 'NZ' THEN 0 ELSE 1 END) other,
-  y, m
+  w
 FROM (
   (
-    SELECT country_code, YEAR(e.start_time) y, MONTH(e.start_time) m
+    SELECT country_code, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
     WHERE NOT e.success = 0 AND e.voided = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
   UNION ALL
   (
-    SELECT country_code, YEAR(e.created) y, MONTH(e.created) m
+    SELECT country_code, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
 ) x
-GROUP BY y, m
-ORDER BY y, m`;
+GROUP BY w
+ORDER BY w`;
 
 const sqlOneSchool = `
 SELECT
@@ -51,10 +51,10 @@ SELECT
   SUM(CASE WHEN country_code = 'AU' THEN 1 ELSE 0 END) au,
   SUM(CASE WHEN country_code = 'NZ' THEN 1 ELSE 0 END) nz,
   SUM(CASE WHEN country_code = 'US' OR country_code = 'CA' OR country_code = 'GB' OR country_code = 'AU' OR country_code = 'NZ' THEN 0 ELSE 1 END) other,
-  y, m
+  w
 FROM (
   (
-    SELECT country_code, YEAR(e.start_time) y, MONTH(e.start_time) m
+    SELECT country_code, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses ec ON ec.enrollment_id = e.id
     LEFT JOIN general.courses c ON c.code = ec.course_code
@@ -63,12 +63,12 @@ FROM (
   )
   UNION ALL
   (
-    SELECT country_code, YEAR(e.created) y, MONTH(e.created) m
+    SELECT country_code, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     LEFT JOIN general.courses z ON c.course_code = z.code
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com' AND z.school_name = ?
   )
 ) x
-GROUP BY y, m
-ORDER BY y, m`;
+GROUP BY w
+ORDER BY w`;
