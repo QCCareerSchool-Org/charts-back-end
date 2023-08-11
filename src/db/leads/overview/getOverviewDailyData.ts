@@ -19,13 +19,13 @@ export const getOverviewDailyData = async (start: Date, school?: School): Promis
 const sqlAllSchools = `
 SELECT COUNT(*) \`count\`, YEAR(created) y, MONTH(created) m, DAY(created) d
 FROM leads.leads
-WHERE created >= ? AND NOT email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND NOT emailAddress LIKE '%@qccareerschool.com'
 GROUP BY y, m, d
 ORDER BY y, m, d`;
 
 const sqlOneSchool = `
 SELECT COUNT(*) \`count\`, YEAR(created) y, MONTH(created) m, DAY(created) d
 FROM leads.leads
-WHERE created >= ? AND schoolName = ? AND NOT email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND schoolName = ? AND NOT emailAddress LIKE '%@qccareerschool.com'
 GROUP BY y, m, d
 ORDER BY y, m, d`;

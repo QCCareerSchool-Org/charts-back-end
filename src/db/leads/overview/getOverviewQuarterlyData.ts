@@ -19,13 +19,13 @@ export const getOverviewQuarterlyData = async (start: Date, school?: School): Pr
 const sqlAllSchools = `
 SELECT COUNT(*) \`count\`, YEAR(created) y, QUARTER(created) q
 FROM leads.leads
-WHERE created >= ? AND NOT email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND NOT emailAddress LIKE '%@qccareerschool.com'
 GROUP BY y, q
 ORDER BY y, q`;
 
 const sqlOneSchool = `
 SELECT COUNT(*) \`count\`, YEAR(created) y, QUARTER(created) q
 FROM leads.leads
-WHERE created >= ? AND schoolName = ? AND NOT email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND schoolName = ? AND NOT emailAddress LIKE '%@qccareerschool.com'
 GROUP BY y, q
 ORDER BY y, q`;

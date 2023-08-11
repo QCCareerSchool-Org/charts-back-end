@@ -19,13 +19,13 @@ export const getOverviewWeeklyData = async (start: Date, school?: School): Promi
 const sqlAllSchools = `
 SELECT COUNT(*) \`count\`, YEARWEEK(created) w
 FROM leads.leads
-WHERE created >= ? AND NOT email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND NOT emailAddress LIKE '%@qccareerschool.com'
 GROUP BY w
 ORDER BY w`;
 
 const sqlOneSchool = `
 SELECT COUNT(*) \`count\`, YEARWEEK(created) w
 FROM leads.leads
-WHERE created >= ? AND schoolName = ? AND NOT email_address LIKE '%@qccareerschool.com'
+WHERE created >= ? AND schoolName = ? AND NOT emailAddress LIKE '%@qccareerschool.com'
 GROUP BY w
 ORDER BY w`;
