@@ -1,10 +1,10 @@
-import { pool } from '../../../pool';
+import { pool2 } from '../../../pool2';
 import { School } from '../../../schema';
 
 type QuarterlyResult = Array<{ count: number; y: number; q: number }>;
 
 export const getOverviewQuarterlyData = async (start: Date, school?: School): Promise<QuarterlyResult> => {
-  const connection = await (await pool).getConnection();
+  const connection = await (await pool2).getConnection();
   try {
     if (school) {
       return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as QuarterlyResult;
