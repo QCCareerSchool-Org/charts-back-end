@@ -11,6 +11,7 @@ const config: PoolOptions = {
   debug: process.env.DB2_DEBUG === 'TRUE',
   password: process.env.DB2_PASSWORD,
   user: process.env.DB2_USERNAME,
+  decimalNumbers: true,
   idleTimeout: 5000, // five seconds as per https://vercel.com/kb/guide/connection-pooling-with-functions
   maxIdle: 0, // how many connections to keep regardless of the timeout
 };

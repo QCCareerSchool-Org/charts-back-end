@@ -28,8 +28,6 @@ if (typeof secret === 'undefined') {
 export const checkValidationMiddleware: RequestHandler = async (req, res, next) => {
   const cookies = req.cookies as Record<string, string | undefined>;
 
-  console.log(cookies);
-
   const accessToken = cookies.access;
   if (typeof accessToken === 'undefined') {
     res.status(401).send('Access token missing');
