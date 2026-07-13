@@ -1,31 +1,23 @@
-import * as HttpStatus from '@qccareerschool/http-status';
+import type { RequestHandler } from 'express';
 
-import { asyncWrapper } from '../../asyncWrapper';
-import { getOverviewDailyData } from '../../db/sales/overview/getOverviewDailyData';
-import { getOverviewMonthlyData } from '../../db/sales/overview/getOverviewMonthlyData';
-import { getOverviewQuarterlyData } from '../../db/sales/overview/getOverviewQuarterlyData';
-import { getOverviewWeeklyData } from '../../db/sales/overview/getOverviewWeeklyData';
-import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek';
-import { lastMonday } from '../../lib/lastMonday';
-import { today } from '../../lib/today';
-import { overviewSchema, RequestBody, School } from '../../schema';
+import { type School, validateQuery } from '#src/domain/query.mjs';
+import { getOverviewDailyData } from '../../db/sales/overview/getOverviewDailyData.js';
+import { getOverviewMonthlyData } from '../../db/sales/overview/getOverviewMonthlyData.js';
+import { getOverviewQuarterlyData } from '../../db/sales/overview/getOverviewQuarterlyData.js';
+import { getOverviewWeeklyData } from '../../db/sales/overview/getOverviewWeeklyData.js';
+import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek.mjs';
+import { lastMonday } from '../../lib/lastMonday.mjs';
+import { today } from '../../lib/today.mjs';
 
-export const overview = asyncWrapper(async (req, res) => {
-  // validate the request
-  let query: RequestBody;
-  try {
-    query = await overviewSchema.validate(req.query);
-  } catch (err) {
-    if (err instanceof Error) {
-      throw new HttpStatus.BadRequest(err.message);
-    } else if (typeof err === 'string') {
-      throw new HttpStatus.BadRequest(err);
-    } else {
-      throw new HttpStatus.BadRequest('unknown error');
-    }
+export const overview: RequestHandler = async (req, res) => {
+  const queryResult = await validateQuery(req.query);
+  if (!queryResult.success) {
+    res.status(400).send(queryResult.error);
+    return;
   }
 
-  // send the response
+  const query = queryResult.value;
+
   switch (query.period) {
     case 'daily':
       res.send(await overviewDaily(query.school));
@@ -40,12 +32,12 @@ export const overview = asyncWrapper(async (req, res) => {
       res.send(await overviewQuarterly(query.school));
       break;
     default:
-      throw new HttpStatus.InternalServerError('Unrecognized period');
+      res.status(400).send('Unrecognized period');
   }
-});
+};
 
-type Results = Array<{ date: Date; sales: number }>;
-type QuarterlyResults = Array<{ label: string; sales: number }>;
+type Results = { date: Date; sales: number }[];
+type QuarterlyResults = { label: string; sales: number }[];
 
 const overviewDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago

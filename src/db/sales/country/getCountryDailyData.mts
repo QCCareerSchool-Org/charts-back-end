@@ -1,19 +1,28 @@
-import { pool } from '../../../pool';
-import { School } from '../../../schema';
+import type { RowDataPacket } from 'mysql2';
 
-type DailyResult = Array<{ us: number; ca: number; gb: number; au: number; nz: number; other: number; y: number; m: number; d: number }>;
+import type { School } from '#src/domain/query.mjs';
+import { pool } from '#src/pool.mjs';
 
-export const getCountryDailyData = async (start: Date, school?: School): Promise<DailyResult> => {
-  const connection = await (await pool).getConnection();
-  try {
-    if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as DailyResult;
-    }
-    return await connection.query(sqlAllSchools, [ start, start ]) as DailyResult;
+interface DailyResult extends RowDataPacket {
+  us: number;
+  ca: number;
+  gb: number;
+  au: number;
+  nz: number;
+  other: number;
+  y: number;
+  m: number;
+  d: number;
+};
 
-  } finally {
-    connection.release();
+export const getCountryDailyData = async (start: Date, school?: School): Promise<DailyResult[]> => {
+  await using connection = await pool.getConnection();
+  if (school) {
+    const [ rows ] = await connection.query<DailyResult[]>(sqlOneSchool, [ start, school, school, start, school ]);
+    return rows;
   }
+  const [ rows ] = await connection.query<DailyResult[]>(sqlAllSchools, [ start, start ]);
+  return rows;
 };
 
 const sqlAllSchools = `

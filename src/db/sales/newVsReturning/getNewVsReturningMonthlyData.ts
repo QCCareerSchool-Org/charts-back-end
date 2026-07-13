@@ -1,4 +1,4 @@
-import { pool } from '../../../pool';
+import { pool } from '../../../pool.mjs';
 import { School } from '../../../schema';
 
 type MonthlyResult = Array<{ new: number; returning: number; y: number; m: number }>;

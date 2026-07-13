@@ -1,19 +1,27 @@
-import { pool } from '../../../pool';
-import { School } from '../../../schema';
+import type { RowDataPacket } from 'mysql2';
 
-type QuarterlyResult = Array<{ us: number; ca: number; gb: number; au: number; nz: number; other: number; y: number; q: number }>;
+import type { School } from '#src/domain/query.mjs';
+import { pool } from '#src/pool.mjs';
 
-export const getCountryQuarterlyData = async (start: Date, school?: School): Promise<QuarterlyResult> => {
-  const connection = await (await pool).getConnection();
-  try {
-    if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as QuarterlyResult;
-    }
-    return await connection.query(sqlAllSchools, [ start, start ]) as QuarterlyResult;
+interface QuarterlyResult extends RowDataPacket {
+  us: number;
+  ca: number;
+  gb: number;
+  au: number;
+  nz: number;
+  other: number;
+  y: number;
+  q: number;
+}
 
-  } finally {
-    connection.release();
+export const getCountryQuarterlyData = async (start: Date, school?: School): Promise<QuarterlyResult[]> => {
+  await using connection = await pool.getConnection();
+  if (school) {
+    const [ rows ] = await connection.query<QuarterlyResult[]>(sqlOneSchool, [ start, school, school, start, school ]);
+    return rows;
   }
+  const [ rows ] = await connection.query<QuarterlyResult[]>(sqlAllSchools, [ start, start ]);
+  return rows;
 };
 
 const sqlAllSchools = `

@@ -1,31 +1,23 @@
-import * as HttpStatus from '@qccareerschool/http-status';
+import type { RequestHandler } from 'express';
 
-import { asyncWrapper } from '../../asyncWrapper';
-import { getCountryDailyData } from '../../db/sales/country/getCountryDailyData';
-import { getCountryMonthlyData } from '../../db/sales/country/getCountryMonthlyData';
-import { getCountryQuarterlyData } from '../../db/sales/country/getCountryQuarterlyData';
-import { getCountryWeeklyData } from '../../db/sales/country/getCountryWeeklyData';
-import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek';
-import { lastMonday } from '../../lib/lastMonday';
-import { today } from '../../lib/today';
-import { overviewSchema, RequestBody, School } from '../../schema';
+import { type School, validateQuery } from '#src/domain/query.mjs';
+import { getCountryDailyData } from '../../db/sales/country/getCountryDailyData.mjs';
+import { getCountryMonthlyData } from '../../db/sales/country/getCountryMonthlyData.mjs';
+import { getCountryQuarterlyData } from '../../db/sales/country/getCountryQuarterlyData.mjs';
+import { getCountryWeeklyData } from '../../db/sales/country/getCountryWeeklyData.mjs';
+import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek.mjs';
+import { lastMonday } from '../../lib/lastMonday.mjs';
+import { today } from '../../lib/today.mjs';
 
-export const country = asyncWrapper(async (req, res) => {
-  // validate the request
-  let query: RequestBody;
-  try {
-    query = await overviewSchema.validate(req.query);
-  } catch (err) {
-    if (err instanceof Error) {
-      throw new HttpStatus.BadRequest(err.message);
-    } else if (typeof err === 'string') {
-      throw new HttpStatus.BadRequest(err);
-    } else {
-      throw new HttpStatus.BadRequest('unknown error');
-    }
+export const country: RequestHandler = async (req, res) => {
+  const queryResult = await validateQuery(req.query);
+  if (!queryResult.success) {
+    res.status(400).send(queryResult.error);
+    return;
   }
 
-  // send the response
+  const query = queryResult.value;
+
   switch (query.period) {
     case 'daily':
       res.send(await countryDaily(query.school));
@@ -40,12 +32,12 @@ export const country = asyncWrapper(async (req, res) => {
       res.send(await countryQuarterly(query.school));
       break;
     default:
-      throw new HttpStatus.InternalServerError('Unrecognized period');
+      res.status(400).send('Unrecognized period');
   }
-});
+};
 
-type Results = Array<{ date: Date; us: number; ca: number; gb: number; au: number; nz: number; other: number }>;
-type QuarterlyResults = Array<{ label: string; us: number; ca: number; gb: number; au: number; nz: number; other: number }>;
+type Results = { date: Date; us: number; ca: number; gb: number; au: number; nz: number; other: number }[];
+type QuarterlyResults = { label: string; us: number; ca: number; gb: number; au: number; nz: number; other: number }[];
 
 const countryDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago

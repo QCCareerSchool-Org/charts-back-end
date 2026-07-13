@@ -1,4 +1,4 @@
-import { pool } from '../../../pool';
+import { pool } from '../../../pool.mjs';
 import { School } from '../../../schema';
 
 type DailyResult = Array<{ sales: number; y: number; m: number; d: number }>;

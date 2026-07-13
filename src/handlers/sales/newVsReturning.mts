@@ -1,31 +1,23 @@
-import * as HttpStatus from '@qccareerschool/http-status';
+import type { RequestHandler } from 'express';
 
-import { asyncWrapper } from '../../asyncWrapper';
-import { getNewVsReturningDailyData } from '../../db/sales/newVsReturning/getNewVsReturningDailyData';
-import { getNewVsReturningMonthlyData } from '../../db/sales/newVsReturning/getNewVsReturningMonthlyData';
-import { getNewVsReturningQuarterlyData } from '../../db/sales/newVsReturning/getNewVsReturningQuarterlyData';
-import { getNewVsReturningWeeklyData } from '../../db/sales/newVsReturning/getNewVsReturningWeeklyData';
-import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek';
-import { lastMonday } from '../../lib/lastMonday';
-import { today } from '../../lib/today';
-import { overviewSchema, RequestBody, School } from '../../schema';
+import { type School, validateQuery } from '#src/domain/query.mjs';
+import { getNewVsReturningDailyData } from '../../db/sales/newVsReturning/getNewVsReturningDailyData.js';
+import { getNewVsReturningMonthlyData } from '../../db/sales/newVsReturning/getNewVsReturningMonthlyData.js';
+import { getNewVsReturningQuarterlyData } from '../../db/sales/newVsReturning/getNewVsReturningQuarterlyData.js';
+import { getNewVsReturningWeeklyData } from '../../db/sales/newVsReturning/getNewVsReturningWeeklyData.js';
+import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek.mjs';
+import { lastMonday } from '../../lib/lastMonday.mjs';
+import { today } from '../../lib/today.mjs';
 
-export const newVsReturning = asyncWrapper(async (req, res) => {
-  // validate the request
-  let query: RequestBody;
-  try {
-    query = await overviewSchema.validate(req.query);
-  } catch (err) {
-    if (err instanceof Error) {
-      throw new HttpStatus.BadRequest(err.message);
-    } else if (typeof err === 'string') {
-      throw new HttpStatus.BadRequest(err);
-    } else {
-      throw new HttpStatus.BadRequest('unknown error');
-    }
+export const newVsReturning: RequestHandler = async (req, res) => {
+  const queryResult = await validateQuery(req.query);
+  if (!queryResult.success) {
+    res.status(400).send(queryResult.error);
+    return;
   }
 
-  // send the response
+  const query = queryResult.value;
+
   switch (query.period) {
     case 'daily':
       res.send(await newVsReturningDaily(query.school));
@@ -40,12 +32,12 @@ export const newVsReturning = asyncWrapper(async (req, res) => {
       res.send(await newVsReturningQuarterly(query.school));
       break;
     default:
-      throw new HttpStatus.InternalServerError('Unrecognized period');
+      res.status(400).send('Unrecognized period');
   }
-});
+};
 
-type Results = Array<{ date: Date; new: number; returning: number }>;
-type QuarterlyResults = Array<{ label: string; new: number; returning: number }>;
+type Results = { date: Date; new: number; returning: number }[];
+type QuarterlyResults = { label: string; new: number; returning: number }[];
 
 const newVsReturningDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago
