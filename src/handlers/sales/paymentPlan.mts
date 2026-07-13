@@ -1,13 +1,13 @@
 import type { RequestHandler } from 'express';
 
+import { getPaymentPlanDailyData } from '#src/db/sales/paymentPlan/getPaymentPlanDailyData.mjs';
+import { getPaymentPlanMonthlyData } from '#src/db/sales/paymentPlan/getPaymentPlanMonthlyData.mjs';
+import { getPaymentPlanQuarterlyData } from '#src/db/sales/paymentPlan/getPaymentPlanQuarterlyData.mjs';
+import { getPaymentPlanWeeklyData } from '#src/db/sales/paymentPlan/getPaymentPlanWeeklyData.mjs';
 import { type School, validateQuery } from '#src/domain/query.mjs';
-import { getPaymentPlanDailyData } from '../../db/sales/paymentPlan/getPaymentPlanDailyData.js';
-import { getPaymentPlanMonthlyData } from '../../db/sales/paymentPlan/getPaymentPlanMonthlyData.js';
-import { getPaymentPlanQuarterlyData } from '../../db/sales/paymentPlan/getPaymentPlanQuarterlyData.js';
-import { getPaymentPlanWeeklyData } from '../../db/sales/paymentPlan/getPaymentPlanWeeklyData.js';
-import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek.mjs';
-import { lastMonday } from '../../lib/lastMonday.mjs';
-import { today } from '../../lib/today.mjs';
+import { getDateOfISOWeek } from '#src/lib/getDateOfISOWeek.mjs';
+import { lastMonday } from '#src/lib/lastMonday.mjs';
+import { today } from '#src/lib/today.mjs';
 
 export const paymentPlan: RequestHandler = async (req, res) => {
   const queryResult = await validateQuery(req.query);

@@ -1,46 +1,55 @@
-import { pool } from '../../../pool.mjs';
-import { School } from '../../../schema';
+import type { RowDataPacket } from 'mysql2';
 
-type MonthlyResult = Array<{ sales: number; y: number; m: number }>;
+import type { School } from '#src/domain/query.mjs';
+import { pool } from '#src/pool.mjs';
 
-export const getOverviewMonthlyData = async (start: Date, school?: School): Promise<MonthlyResult> => {
-  const connection = await (await pool).getConnection();
-  try {
-    if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as MonthlyResult;
-    }
-    return await connection.query(sqlAllSchools, [ start, start ]) as MonthlyResult;
+interface WeeklyResult extends RowDataPacket {
+  new: number;
+  returning: number;
+  w: number;
+};
 
-  } finally {
-    connection.release();
+export const getNewVsReturningWeeklyData = async (start: Date, school?: School): Promise<WeeklyResult[]> => {
+  await using connection = await pool.getConnection();
+  if (school) {
+    const [ rows ] = await connection.query<WeeklyResult[]>(sqlOneSchool, [ start, school, school, start, school ]);
+    return rows;
   }
+  const [ rows ] = await connection.query<WeeklyResult[]>(sqlAllSchools, [ start, start ]);
+  return rows;
 };
 
 const sqlAllSchools = `
-SELECT COUNT(*) sales, y, m
+SELECT
+  SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
+  SUM(CASE WHEN existing_student = 0 THEN 1 ELSE 0 END) \`new\`,
+  w
 FROM (
   (
-    SELECT YEAR(e.start_time) y, MONTH(e.start_time) m
+    SELECT 0 AS existing_student, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses c ON c.enrollment_id = e.id
     WHERE NOT e.success = 0 AND e.voided = 0 AND e.start_time >= ? AND (c.cost > c.discount OR c.cost IS NULL) AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
   UNION ALL
   (
-    SELECT YEAR(e.created) y, MONTH(e.created) m
+    SELECT e.existing_student, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com'
   )
 ) x
-GROUP BY y, m
-ORDER BY y, m`;
+GROUP BY w
+ORDER BY w`;
 
 const sqlOneSchool = `
-SELECT COUNT(*) sales, y, m
+SELECT
+  SUM(CASE WHEN existing_student = 1 THEN 1 ELSE 0 END) \`returning\`,
+  SUM(CASE WHEN existing_student = 0 THEN 1 ELSE 0 END) \`new\`,
+  w
 FROM (
   (
-    SELECT YEAR(e.start_time) y, MONTH(e.start_time) m
+    SELECT 0 AS existing_student, YEARWEEK(e.start_time, 1) w
     FROM general.enrollments e
     LEFT JOIN general.enrollment_courses ec ON ec.enrollment_id = e.id
     LEFT JOIN general.courses c ON c.code = ec.course_code
@@ -49,12 +58,12 @@ FROM (
   )
   UNION ALL
   (
-    SELECT YEAR(e.created) y, MONTH(e.created) m
+    SELECT e.existing_student, YEARWEEK(e.created, 1) w
     FROM enrollments.enrollments e
     LEFT JOIN enrollments.courses c USING (enrollment_id)
     LEFT JOIN general.courses z ON c.course_code = z.code
     WHERE hidden = 0 AND NOT e.success = 0 AND e.voided = 0 AND e.created >= ? AND c.base_cost - c.discount - c.secondary_discount - c.campaign_discount > 0 AND NOT e.email_address LIKE '%@qccareerschool.com' AND z.school_name = ?
   )
 ) x
-GROUP BY y, m
-ORDER BY y, m`;
+GROUP BY w
+ORDER BY w`;

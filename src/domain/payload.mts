@@ -3,5 +3,6 @@ export interface Payload {
 }
 
 export const isPayload = (val: unknown): val is Payload => {
-  return true;
+  return typeof val === 'object' && val !== null
+    && (('xsrf' in val && typeof val.xsrf === 'string') || (!('xsrf' in val)));
 };

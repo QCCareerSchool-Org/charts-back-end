@@ -1,19 +1,23 @@
-import { pool } from '../../../pool.mjs';
-import { School } from '../../../schema';
+import type { RowDataPacket } from 'mysql2';
 
-type MonthlyResult = Array<{ full: number; part: number; y: number; m: number }>;
+import type { School } from '#src/domain/query.mjs';
+import { pool } from '#src/pool.mjs';
 
-export const getPaymentPlanMonthlyData = async (start: Date, school?: School): Promise<MonthlyResult> => {
-  const connection = await (await pool).getConnection();
-  try {
-    if (school) {
-      return await connection.query(sqlOneSchool, [ start, school, school, start, school ]) as MonthlyResult;
-    }
-    return await connection.query(sqlAllSchools, [ start, start ]) as MonthlyResult;
+interface MonthlyResult extends RowDataPacket {
+  full: number;
+  part: number;
+  y: number;
+  m: number;
+};
 
-  } finally {
-    connection.release();
+export const getPaymentPlanMonthlyData = async (start: Date, school?: School): Promise<MonthlyResult[]> => {
+  await using connection = await pool.getConnection();
+  if (school) {
+    const [ rows ] = await connection.query<MonthlyResult[]>(sqlOneSchool, [ start, school, school, start, school ]);
+    return rows;
   }
+  const [ rows ] = await connection.query<MonthlyResult[]>(sqlAllSchools, [ start, start ]);
+  return rows;
 };
 
 const sqlAllSchools = `

@@ -1,10 +1,10 @@
 import type { RequestHandler } from 'express';
 
 import { type School, validateQuery } from '#src/domain/query.mjs';
-import { getOverviewDailyData } from '../../db/sales/overview/getOverviewDailyData.js';
-import { getOverviewMonthlyData } from '../../db/sales/overview/getOverviewMonthlyData.js';
-import { getOverviewQuarterlyData } from '../../db/sales/overview/getOverviewQuarterlyData.js';
-import { getOverviewWeeklyData } from '../../db/sales/overview/getOverviewWeeklyData.js';
+import { getOverviewDailyData } from '../../db/sales/overview/getOverviewDailyData.mjs';
+import { getOverviewMonthlyData } from '../../db/sales/overview/getOverviewMonthlyData.mjs';
+import { getOverviewQuarterlyData } from '../../db/sales/overview/getOverviewQuarterlyData.mjs';
+import { getOverviewWeeklyData } from '../../db/sales/overview/getOverviewWeeklyData.mjs';
 import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek.mjs';
 import { lastMonday } from '../../lib/lastMonday.mjs';
 import { today } from '../../lib/today.mjs';

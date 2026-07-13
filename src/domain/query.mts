@@ -14,8 +14,8 @@ export interface Query {
 
 const overviewSchema: z.ZodType<Query> = z.object({
   period: z.enum(periods),
-  school: z.enum(schools),
-}).required();
+  school: z.enum(schools).optional(),
+});
 
 export const validateQuery = async (body: Record<string, unknown>): Promise<Result<Query>> => {
   const result = await overviewSchema.safeParseAsync(body);

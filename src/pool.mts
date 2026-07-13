@@ -1,10 +1,6 @@
 import { attachDatabasePool } from '@vercel/functions';
-import dotenv from 'dotenv';
 import type { PoolOptions } from 'mysql2';
 import { createPool } from 'mysql2';
-import fs from 'node:fs';
-
-dotenv.config();
 
 const DEFAULT_CONNECTION_LIMIT = 100;
 
@@ -27,14 +23,8 @@ if (typeof process.env.DB_SOCKET_PATH !== 'undefined') {
 
 if (typeof process.env.DB_SSL !== 'undefined' && process.env.DB_SSL === 'true') {
   config.ssl = {};
-  if (typeof process.env.DB_CLIENT_CERT !== 'undefined') {
-    config.ssl.cert = fs.readFileSync(process.env.DB_CLIENT_CERT);
-  }
-  if (typeof process.env.DB_CLIENT_KEY !== 'undefined') {
-    config.ssl.key = fs.readFileSync(process.env.DB_CLIENT_KEY);
-  }
   if (typeof process.env.DB_SERVER_CA !== 'undefined') {
-    config.ssl.ca = fs.readFileSync(process.env.DB_SERVER_CA);
+    config.ssl.ca = Buffer.from(process.env.DB_SERVER_CA, 'base64').toString('utf8');
   }
 }
 
