@@ -28,19 +28,21 @@ if (typeof secret === 'undefined') {
 export const checkValidationMiddleware: RequestHandler = async (req, res, next) => {
   const cookies = req.cookies as Record<string, string | undefined>;
 
+  console.log(cookies);
+
   const accessToken = cookies.access;
   if (typeof accessToken === 'undefined') {
-    res.sendStatus(400);
+    res.status(401).send('Access token missing');
     return;
   }
 
   const payloadResult = await decode(accessToken);
   if (!payloadResult.success) {
-    res.sendStatus(400);
+    res.status(401).send('Invalid access token');
     return;
   }
 
-  if (!(req.method === 'HEAD' || req.method === 'GET')) {
+  if (!(req.method === 'HEAD' || req.method === 'GET' || req.method === 'OPTIONS')) {
     // check for X-XSRF-TOKEN header
     const xsrfToken = req.headers['x-xsrf-token'];
     if (typeof xsrfToken === 'undefined') {
