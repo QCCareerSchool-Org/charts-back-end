@@ -2,7 +2,7 @@ import { attachDatabasePool } from '@vercel/functions';
 import type { PoolOptions } from 'mysql2';
 import { createPool } from 'mysql2';
 
-const DEFAULT_CONNECTION_LIMIT = 100;
+const DEFAULT_CONNECTION_LIMIT = 5;
 
 const config: PoolOptions = {
   charset: process.env.DB_CHARSET,
