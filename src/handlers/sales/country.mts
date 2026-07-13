@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 
-import { type School, validateQuery } from '#src/domain/query.mjs';
+import type { School } from '#src/domain/query.mjs';
+import { validateQuery } from '#src/domain/query.mjs';
 import { getCountryDailyData } from '../../db/sales/country/getCountryDailyData.mjs';
 import { getCountryMonthlyData } from '../../db/sales/country/getCountryMonthlyData.mjs';
 import { getCountryQuarterlyData } from '../../db/sales/country/getCountryQuarterlyData.mjs';

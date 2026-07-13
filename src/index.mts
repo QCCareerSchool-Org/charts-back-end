@@ -5,6 +5,7 @@ import express from 'express';
 import helmet from 'helmet';
 
 import { globalErrorHandler } from './handlers/globalErrorHandler.mjs';
+import { cacheHeadersMiddleware } from './middleware/cacheHeaders.mjs';
 import { checkValidationMiddleware } from './middleware/checkValidation.mjs';
 import { router } from './router.mjs';
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 if (process.env.NODE_ENV === 'production') {
+  app.use(cacheHeadersMiddleware);
   app.use(checkValidationMiddleware);
 }
 

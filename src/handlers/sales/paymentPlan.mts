@@ -4,7 +4,8 @@ import { getPaymentPlanDailyData } from '#src/db/sales/paymentPlan/getPaymentPla
 import { getPaymentPlanMonthlyData } from '#src/db/sales/paymentPlan/getPaymentPlanMonthlyData.mjs';
 import { getPaymentPlanQuarterlyData } from '#src/db/sales/paymentPlan/getPaymentPlanQuarterlyData.mjs';
 import { getPaymentPlanWeeklyData } from '#src/db/sales/paymentPlan/getPaymentPlanWeeklyData.mjs';
-import { type School, validateQuery } from '#src/domain/query.mjs';
+import type { School } from '#src/domain/query.mjs';
+import { validateQuery } from '#src/domain/query.mjs';
 import { getDateOfISOWeek } from '#src/lib/getDateOfISOWeek.mjs';
 import { lastMonday } from '#src/lib/lastMonday.mjs';
 import { today } from '#src/lib/today.mjs';
