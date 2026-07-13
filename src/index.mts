@@ -1,9 +1,11 @@
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import cors, { type CorsOptions } from 'cors';
+import type { CorsOptions } from 'cors';
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 
+import config from './config.mjs';
 import { globalErrorHandler } from './handlers/globalErrorHandler.mjs';
 import { cacheHeadersMiddleware } from './middleware/cacheHeaders.mjs';
 import { checkValidationMiddleware } from './middleware/checkValidation.mjs';
@@ -22,7 +24,7 @@ app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
 
-if (process.env.NODE_ENV === 'production') {
+if (config.env === 'production') {
   app.use(cacheHeadersMiddleware);
   app.use(checkValidationMiddleware);
 }
@@ -31,8 +33,8 @@ app.use(router);
 
 app.use(globalErrorHandler);
 
-if (process.env.NODE_ENV !== 'production') {
-  const port = process.env.PORT ?? 8080;
+if (config.env !== 'production') {
+  const port = config.port ?? 8080;
   app.listen(port, () => {
     console.log(`listening on port ${port}`);
   });
