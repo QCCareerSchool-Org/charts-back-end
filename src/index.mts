@@ -21,9 +21,9 @@ app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
 
-if (process.env.NODE_ENV === 'production') {
-  app.use(checkValidationMiddleware);
-}
+// if (process.env.NODE_ENV === 'production') {
+app.use(checkValidationMiddleware);
+// }
 
 app.use(router);
 
