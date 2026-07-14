@@ -19,11 +19,6 @@ const options: PoolOptions = {
 
 const rawPool = createPool(options);
 
-rawPool.on('connection', connection => {
-  // Sets the session context immediately when a connection is grabbed or created
-  connection.query("SET time_zone = 'America/Toronto';");
-});
-
 if (config.env === 'production') {
   attachDatabasePool(rawPool);
 }
