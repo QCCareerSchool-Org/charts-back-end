@@ -1,6 +1,6 @@
-import dotenv from 'dotenv';
-
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  await import('dotenv/config');
+}
 
 const DEFAULT_CONNECTION_LIMIT = 5;
 
