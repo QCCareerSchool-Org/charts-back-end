@@ -1,12 +1,23 @@
-export const today = (): Date => {
-  const utcDate = new Date();
-  utcDate.setUTCHours(0, 0, 0, 0);
+export const today = () => {
+  const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit', timeZoneName: 'longOffset' });
+  const parts = formatter.formatToParts(new Date());
 
-  const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Toronto', timeZoneName: 'shortOffset' });
-  const offsetString = formatter.formatToParts(utcDate).find(p => p.type === 'timeZoneName')?.value ?? 'GMT';
+  const year = parts.find(p => p.type === 'year')?.value;
+  const month = parts.find(p => p.type === 'month')?.value;
+  const day = parts.find(p => p.type === 'day')?.value;
+  const timeZoneName = parts.find(p => p.type === 'timeZoneName')?.value;
 
-  // e.g., 'GMT-4' or 'GMT-5'
-  const match = /GMT([+-]\d+)/u.exec(offsetString);
-  const offsetHours = match?.[1] ? parseInt(match[1], 10) : 0;
-  return new Date(utcDate.getTime() - (offsetHours * 60 * 60 * 1000));
+  if (year === undefined || month === undefined || day === undefined || timeZoneName === undefined) {
+    throw Error('Could not find date parts');
+  }
+
+  const match = /GMT([+-]\d+)/u.exec(timeZoneName);
+  if (match?.[1] === undefined) {
+    throw Error('Could not determine offset');
+  }
+
+  // midnight America/Toronto time
+  const localIsoString = `${year}-${month}-${day}T00:00:00.000${match[1]}:00`;
+
+  return new Date(localIsoString);
 };
