@@ -1,11 +1,18 @@
-export const getDateOfISOWeek = (y: number, w: number): Date => {
-  const simple = new Date(y, 0, 1 + ((w - 1) * 7));
-  const dow = simple.getDay();
+import { DEFAULT_TIME_ZONE, startOfDay } from './calendarDate.mjs';
+
+export const getDateOfISOWeek = (y: number, w: number, timeZone = DEFAULT_TIME_ZONE): Date => {
+  const simple = new Date(Date.UTC(y, 0, 1 + ((w - 1) * 7)));
+  const dow = simple.getUTCDay();
   const ISOweekStart = simple;
   if (dow <= 4) {
-    ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+    ISOweekStart.setUTCDate(simple.getUTCDate() - simple.getUTCDay() + 1);
   } else {
-    ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+    ISOweekStart.setUTCDate(simple.getUTCDate() + 8 - simple.getUTCDay());
   }
-  return ISOweekStart;
+  return startOfDay(
+    ISOweekStart.getUTCFullYear(),
+    ISOweekStart.getUTCMonth(),
+    ISOweekStart.getUTCDate(),
+    timeZone,
+  );
 };
