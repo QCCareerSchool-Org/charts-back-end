@@ -6,6 +6,8 @@ import { getNewVsReturningDailyData } from '../../db/sales/newVsReturning/getNew
 import { getNewVsReturningMonthlyData } from '../../db/sales/newVsReturning/getNewVsReturningMonthlyData.mjs';
 import { getNewVsReturningQuarterlyData } from '../../db/sales/newVsReturning/getNewVsReturningQuarterlyData.mjs';
 import { getNewVsReturningWeeklyData } from '../../db/sales/newVsReturning/getNewVsReturningWeeklyData.mjs';
+import { addCalendarDays, addCalendarMonths } from '../../lib/calendarDate.mjs';
+import { firstOfTheMonth } from '../../lib/firstOfTheMonth.mjs';
 import { getDateOfISOWeek } from '../../lib/getDateOfISOWeek.mjs';
 import { lastMonday } from '../../lib/lastMonday.mjs';
 import { today } from '../../lib/today.mjs';
@@ -42,15 +44,14 @@ type QuarterlyResults = { label: string; new: number; returning: number }[];
 
 const newVsReturningDaily = async (school?: School): Promise<Results> => {
   // start 8 weeks ago
-  const start = today();
-  start.setDate(start.getDate() - (7 * 16));
+  const start = addCalendarDays(today(), -(7 * 16));
 
   // get the data from the database
   const data = await getNewVsReturningDailyData(start, school);
 
   // create the reponse
   const result: Results = [];
-  const date = start;
+  let date = start;
   for (const r of data) {
     // add empty rows as needed
     while (
@@ -59,12 +60,12 @@ const newVsReturningDaily = async (school?: School): Promise<Results> => {
       (r.y === date.getFullYear() && r.m === date.getMonth() + 1 && r.d > date.getDate())
     ) { // we have no data for this day
       result.push({ date: new Date(date), new: 0, returning: 0 });
-      date.setDate(date.getDate() + 1);
+      date = addCalendarDays(date, 1);
     }
 
     // add a normal row
     result.push({ date: new Date(date), new: r.new, returning: r.returning });
-    date.setDate(date.getDate() + 1);
+    date = addCalendarDays(date, 1);
   }
 
   return result;
@@ -72,15 +73,14 @@ const newVsReturningDaily = async (school?: School): Promise<Results> => {
 
 const newVsReturningWeekly = async (school?: School): Promise<Results> => {
   // start 52 weeks from last monday
-  const start = lastMonday();
-  start.setDate(start.getDate() - (7 * 104)); // 104 weeks (~2 years) ago
+  const start = addCalendarDays(lastMonday(), -(7 * 104)); // 104 weeks (~2 years) ago
 
   // get the data
   const data = await getNewVsReturningWeeklyData(start, school);
 
   // create the reponse
   const result: Results = [];
-  const date = start;
+  let date = start;
   for (const r of data) {
     const year = parseInt(r.w.toString().substring(0, 4), 10);
     const week = parseInt(r.w.toString().substring(4), 10);
@@ -90,12 +90,12 @@ const newVsReturningWeekly = async (school?: School): Promise<Results> => {
     // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), new: 0, returning: 0 });
-      date.setDate(date.getDate() + 7);
+      date = addCalendarDays(date, 7);
     }
 
     // add a normal row
     result.push({ date: new Date(date), new: r.new, returning: r.returning });
-    date.setDate(date.getDate() + 7);
+    date = addCalendarDays(date, 7);
   }
 
   return result;
@@ -103,27 +103,27 @@ const newVsReturningWeekly = async (school?: School): Promise<Results> => {
 
 const newVsReturningMonthly = async (school?: School): Promise<Results> => {
   // start 2012-06-01
-  const start = new Date(2012, 6);
+  const start = firstOfTheMonth(2012, 6);
 
   // get the data
   const data = await getNewVsReturningMonthlyData(start, school);
 
   // create the reponse
   const result: Results = [];
-  const date = start;
+  let date = start;
   for (const r of data) {
-    const nextDate = new Date(r.y, r.m - 1);
+    const nextDate = firstOfTheMonth(r.y, r.m - 1);
 
     // add empty rows as needed
     // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), new: 0, returning: 0 });
-      date.setMonth(date.getMonth() + 1);
+      date = addCalendarMonths(date, 1);
     }
 
     // add a normal row
     result.push({ date: new Date(date), new: r.new, returning: r.returning });
-    date.setMonth(date.getMonth() + 1);
+    date = addCalendarMonths(date, 1);
   }
 
   return result;
@@ -131,27 +131,27 @@ const newVsReturningMonthly = async (school?: School): Promise<Results> => {
 
 const newVsReturningQuarterly = async (school?: School): Promise<QuarterlyResults> => {
   // start 2012-Q3
-  const start = new Date(2012, 9);
+  const start = firstOfTheMonth(2012, 9);
 
   // get the data
   const data = await getNewVsReturningQuarterlyData(start, school);
 
   // create the reponse
   const result: QuarterlyResults = [];
-  const date = start;
+  let date = start;
   for (const r of data) {
-    const nextDate = new Date(r.y, (r.q - 1) * 3);
+    const nextDate = firstOfTheMonth(r.y, (r.q - 1) * 3);
 
     // add empty rows as needed
     // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, new: 0, returning: 0 });
-      date.setMonth(date.getMonth() + 3);
+      date = addCalendarMonths(date, 3);
     }
 
     // add a normal row
     result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, new: r.new, returning: r.returning });
-    date.setMonth(date.getMonth() + 3);
+    date = addCalendarMonths(date, 3);
   }
 
   return result;
