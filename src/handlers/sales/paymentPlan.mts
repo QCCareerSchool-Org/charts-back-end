@@ -87,7 +87,6 @@ const paymentPlanWeekly = async (school?: School): Promise<Results> => {
     const nextDate = getDateOfISOWeek(year, week);
 
     // add empty rows as needed
-    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), full: 0, part: 0 });
       date = addCalendarDays(date, 7);
@@ -115,7 +114,6 @@ const paymentPlanMonthly = async (school?: School): Promise<Results> => {
     const nextDate = firstOfTheMonth(r.y, r.m - 1);
 
     // add empty rows as needed
-    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ date: new Date(date), full: 0, part: 0 });
       date = addCalendarMonths(date, 1);
@@ -143,7 +141,6 @@ const paymentPlanQuarterly = async (school?: School): Promise<QuarterlyResults> 
     const nextDate = firstOfTheMonth(r.y, (r.q - 1) * 3);
 
     // add empty rows as needed
-    // eslint-disable-next-line no-unmodified-loop-condition
     while (nextDate > date) { // we have no data for this day
       result.push({ label: `${date.getFullYear()}-Q${(date.getMonth() / 3) + 1}`, full: 0, part: 0 });
       date = addCalendarMonths(date, 3);
